@@ -6,7 +6,3 @@ pages_build_output_dir = "dist"
 binding = "DB"
 database_name = "girl-chocolate-db"
 database_id = "f28a4b5c-2d36-407a-a994-8d9c814c0484"
-
-[[r2_buckets]]
-binding = "DOCS_BUCKET"
-bucket_name = "girl-chocolate-docs"
