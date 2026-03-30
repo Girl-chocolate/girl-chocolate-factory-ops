@@ -6,6 +6,7 @@ export default function IncomingOrders() {
   const [supplements, setSupplements] = useState([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
+  const [statusFilter, setStatusFilter] = useState('all')
 
   useEffect(() => {
     fetchOrders()
@@ -56,123 +57,197 @@ export default function IncomingOrders() {
     }
   }
 
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-chocolate-950">Order Management</h1>
-        <p className="text-chocolate-600 mt-1">Welcome back, Chocolatier. Here is the status of your factory.</p>
-      </div>
+  const filteredOrders = statusFilter === 'all'
+    ? orders
+    : orders.filter(order => order.status === statusFilter)
 
-      {/* Purchase Orders Section */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-lg font-bold text-chocolate-950">Purchase Orders</h2>
-            <p className="text-sm text-chocolate-500">Track shipments arriving at the factory</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <button className="flex items-center gap-2 bg-fuchsia-700 hover:bg-fuchsia-800 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
-              <Sparkles className="w-4 h-4" />
-              Scan PO (AI)
-            </button>
-            <button
-              onClick={() => setShowModal(true)}
-              className="flex items-center gap-2 bg-rose-500 hover:bg-rose-600 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              Manual Entry
-            </button>
-          </div>
+  const getStatusColor = (status) => {
+    switch(status) {
+      case 'pending': return 'amber'
+      case 'received': return 'green'
+      case 'in-transit': return 'blue'
+      default: return 'gray'
+    }
+  }
+
+  const getStatusAccentBorder = (status) => {
+    switch(status) {
+      case 'pending': return 'border-l-4 border-l-amber-400'
+      case 'received': return 'border-l-4 border-l-green-400'
+      case 'in-transit': return 'border-l-4 border-l-blue-400'
+      default: return 'border-l-4 border-l-gray-400'
+    }
+  }
+
+  return (
+    <div className="space-y-8 pb-12">
+      {/* Premium Header Section */}
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-chocolate-950 to-chocolate-700 bg-clip-text text-transparent">
+            Order Management
+          </h1>
+          <p className="text-chocolate-600 mt-2 text-base">Track and manage your incoming purchase orders with precision</p>
         </div>
 
-        {/* Content */}
-        <div className="bg-white rounded-lg border border-chocolate-200 shadow-chocolate">
-          {loading ? (
-            <div className="flex items-center justify-center py-20">
-              <div className="w-8 h-8 rounded-full border-4 border-chocolate-200 border-t-rose-500 animate-spin"></div>
+        {/* Premium Action Buttons */}
+        <div className="flex items-center gap-3">
+          <button className="flex items-center gap-2.5 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 group">
+            <Sparkles className="w-5 h-5 group-hover:animate-spin" />
+            Scan PO (AI)
+          </button>
+          <button
+            onClick={() => setShowModal(true)}
+            className="flex items-center gap-2.5 bg-gradient-to-r from-rose-500 to-amber-500 hover:from-rose-600 hover:to-amber-600 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
+          >
+            <Plus className="w-5 h-5" />
+            Manual Entry
+          </button>
+        </div>
+      </div>
+
+      {/* Status Filter Tabs */}
+      <div className="flex items-center gap-2 border-b border-chocolate-200 pb-4">
+        {[
+          { label: 'All', value: 'all' },
+          { label: 'Pending', value: 'pending' },
+          { label: 'In Transit', value: 'in-transit' },
+          { label: 'Received', value: 'received' }
+        ].map((tab) => (
+          <button
+            key={tab.value}
+            onClick={() => setStatusFilter(tab.value)}
+            className={`px-4 py-2.5 font-medium text-sm transition-all duration-300 relative group ${
+              statusFilter === tab.value
+                ? 'text-chocolate-950'
+                : 'text-chocolate-500 hover:text-chocolate-700'
+            }`}
+          >
+            {tab.label}
+            {statusFilter === tab.value && (
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-rose-500 to-amber-500 rounded-full"></div>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* Orders Section */}
+      <div>
+        {loading ? (
+          <div className="flex items-center justify-center py-32">
+            <div className="space-y-4 text-center">
+              <div className="w-12 h-12 rounded-full border-4 border-chocolate-200 border-t-rose-500 animate-spin mx-auto"></div>
+              <p className="text-chocolate-600 font-medium">Loading orders...</p>
             </div>
-          ) : orders.length === 0 ? (
-            /* Empty State */
-            <div className="py-20">
-              <div className="flex flex-col items-center justify-center border-2 border-dashed border-chocolate-200 rounded-lg mx-6 my-4 py-16">
-                <div className="w-12 h-12 bg-chocolate-100 rounded-full flex items-center justify-center mb-3">
-                  <ClipboardList className="w-6 h-6 text-chocolate-400" />
+          </div>
+        ) : filteredOrders.length === 0 ? (
+          /* Premium Empty State */
+          <div className="flex items-center justify-center py-32">
+            <div className="text-center space-y-6 w-full max-w-md">
+              <div className="flex justify-center">
+                <div className="w-24 h-24 bg-gradient-to-br from-chocolate-50 to-chocolate-100 rounded-3xl flex items-center justify-center border-2 border-dashed border-chocolate-200">
+                  <ClipboardList className="w-12 h-12 text-chocolate-400" />
                 </div>
-                <p className="text-chocolate-500 text-sm">No pending orders found.</p>
               </div>
+              <div>
+                <p className="text-xl font-semibold text-chocolate-950">No pending orders yet</p>
+                <p className="text-chocolate-600 mt-2 text-sm">Create your first purchase order to get started</p>
+              </div>
+              <button
+                onClick={() => setShowModal(true)}
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-rose-500 to-amber-500 hover:from-rose-600 hover:to-amber-600 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl"
+              >
+                <Plus className="w-4 h-4" />
+                Create Order
+              </button>
             </div>
-          ) : (
-            /* Orders List */
-            <div className="divide-y divide-chocolate-100">
-              {orders.map((order) => (
-                <div key={order.id} className="p-5 hover:bg-chocolate-50/50 transition-colors">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 bg-chocolate-100 rounded-lg flex items-center justify-center">
-                        <Package className="w-4 h-4 text-chocolate-600" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-chocolate-950 text-sm">
+          </div>
+        ) : (
+          /* Premium Orders Grid */
+          <div className="grid grid-cols-1 gap-4">
+            {filteredOrders.map((order) => (
+              <div
+                key={order.id}
+                className={`${getStatusAccentBorder(order.status)} bg-white rounded-2xl p-6 shadow-md hover:shadow-lg transition-all duration-300 group`}
+              >
+                {/* Header Section */}
+                <div className="flex items-start justify-between mb-5">
+                  <div className="flex items-start gap-4 flex-1">
+                    <div className="w-12 h-12 bg-gradient-to-br from-chocolate-100 to-chocolate-50 rounded-xl flex items-center justify-center group-hover:from-chocolate-200 transition-colors duration-300">
+                      <Package className="w-6 h-6 text-chocolate-600" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-1">
+                        <h3 className="font-bold text-lg text-chocolate-950">
                           Order #{order.id?.slice(0, 8)}
                         </h3>
-                        {order.supplier_name && (
-                          <p className="text-xs text-chocolate-500">{order.supplier_name}</p>
-                        )}
+                        <StatusBadge status={order.status} />
                       </div>
-                      <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${
-                        order.status === 'pending'
-                          ? 'bg-amber-100 text-amber-700'
-                          : order.status === 'received'
-                            ? 'bg-green-100 text-green-700'
-                            : 'bg-chocolate-100 text-chocolate-700'
-                      }`}>
-                        {order.status === 'pending' && <Clock className="w-3 h-3 inline mr-1" />}
-                        {order.status === 'received' && <Check className="w-3 h-3 inline mr-1" />}
-                        {order.status?.charAt(0).toUpperCase() + order.status?.slice(1)}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleStatusChange(order.id, order.status === 'pending' ? 'received' : 'pending')}
-                        className="text-xs font-medium px-3 py-1.5 bg-chocolate-100 hover:bg-chocolate-200 text-chocolate-800 rounded-lg transition-colors"
-                      >
-                        {order.status === 'pending' ? 'Mark Received' : 'Reopen'}
-                      </button>
-                      <button
-                        onClick={() => handleDelete(order.id)}
-                        className="p-1.5 text-chocolate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      {order.supplier_name && (
+                        <p className="text-chocolate-600 font-medium text-sm">{order.supplier_name}</p>
+                      )}
                     </div>
                   </div>
 
-                  {/* Order items */}
-                  {order.items && order.items.length > 0 && (
-                    <div className="ml-12 space-y-1.5">
-                      {order.items.map((item) => (
-                        <div key={item.id} className="flex items-center justify-between text-xs bg-chocolate-50 rounded-lg px-3 py-2">
-                          <div>
-                            <span className="font-medium text-chocolate-800">{item.supplement_name || 'Unknown'}</span>
-                            <span className="text-chocolate-500 ml-2">{item.quantity_kg?.toFixed(3)} kg @ ${item.unit_price?.toFixed(2)}/kg</span>
-                          </div>
-                          <span className="font-semibold text-chocolate-900">${(item.quantity_kg * item.unit_price).toFixed(2)}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {order.expected_date && (
-                    <p className="text-xs text-chocolate-500 ml-12 mt-2">
-                      Expected: {new Date(order.expected_date).toLocaleDateString()}
-                    </p>
-                  )}
+                  {/* Action Buttons */}
+                  <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <button
+                      onClick={() => handleStatusChange(order.id, order.status === 'pending' ? 'received' : 'pending')}
+                      className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all duration-300 ${
+                        order.status === 'pending'
+                          ? 'bg-green-50 text-green-700 hover:bg-green-100'
+                          : 'bg-amber-50 text-amber-700 hover:bg-amber-100'
+                      }`}
+                    >
+                      {order.status === 'pending' ? 'Mark Received' : 'Reopen'}
+                    </button>
+                    <button
+                      onClick={() => handleDelete(order.id)}
+                      className="p-2 text-chocolate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all duration-300"
+                      title="Delete order"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
+
+                {/* Expected Date */}
+                {order.expected_date && (
+                  <p className="text-xs text-chocolate-500 mb-4 font-medium">
+                    Expected: {new Date(order.expected_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                  </p>
+                )}
+
+                {/* Line Items Table */}
+                {order.items && order.items.length > 0 && (
+                  <div className="space-y-2 pt-4 border-t border-chocolate-100">
+                    <div className="text-xs font-semibold text-chocolate-600 uppercase tracking-wider mb-3">Order Items</div>
+                    {order.items.map((item, idx) => (
+                      <div
+                        key={item.id || idx}
+                        className="flex items-center justify-between bg-gradient-to-r from-chocolate-50 to-transparent rounded-lg px-4 py-3 hover:from-chocolate-100 transition-colors duration-300"
+                      >
+                        <div className="flex-1">
+                          <p className="font-semibold text-chocolate-950 text-sm mb-1">
+                            {item.supplement_name || 'Unknown Item'}
+                          </p>
+                          <p className="text-xs text-chocolate-600">
+                            {item.quantity_kg?.toFixed(3)} kg at ${item.unit_price?.toFixed(2)}/kg
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-chocolate-950">
+                            ${(item.quantity_kg * item.unit_price).toFixed(2)}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Manual Entry Modal */}
@@ -184,6 +259,23 @@ export default function IncomingOrders() {
         />
       )}
     </div>
+  )
+}
+
+function StatusBadge({ status }) {
+  const statusConfig = {
+    pending: { bg: 'bg-amber-100', text: 'text-amber-700', dot: 'bg-amber-500' },
+    received: { bg: 'bg-green-100', text: 'text-green-700', dot: 'bg-green-500' },
+    'in-transit': { bg: 'bg-blue-100', text: 'text-blue-700', dot: 'bg-blue-500' }
+  }
+
+  const config = statusConfig[status] || statusConfig.pending
+
+  return (
+    <span className={`inline-flex items-center gap-2 ${config.bg} ${config.text} text-xs font-bold px-3 py-1 rounded-full`}>
+      <span className={`w-2 h-2 rounded-full ${config.dot} ${status === 'pending' ? 'animate-pulse' : ''}`}></span>
+      {status?.charAt(0).toUpperCase() + status?.slice(1)}
+    </span>
   )
 }
 
@@ -233,108 +325,183 @@ function ManualEntryModal({ supplements, onClose, onCreated }) {
   const total = items.reduce((sum, it) => sum + (parseFloat(it.quantity_kg) || 0) * (parseFloat(it.unit_price) || 0), 0)
 
   return (
-    <div className="fixed inset-0 modal-overlay flex items-center justify-center z-50 animate-fadeIn" onClick={onClose}>
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-xl mx-4 max-h-[90vh] overflow-y-auto animate-slideUp" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-chocolate-100">
-          <h2 className="text-xl font-bold text-chocolate-950">Create Purchase Order</h2>
-          <button onClick={onClose} className="p-1 hover:bg-chocolate-100 rounded-lg transition-colors">
-            <X className="w-5 h-5 text-chocolate-500" />
+    <div
+      className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-slideUp"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Modal Header */}
+        <div className="flex items-center justify-between px-8 py-6 border-b border-chocolate-100 bg-gradient-to-r from-chocolate-50 to-transparent">
+          <div>
+            <h2 className="text-2xl font-bold text-chocolate-950">Create Purchase Order</h2>
+            <p className="text-sm text-chocolate-600 mt-1">Add new incoming supplies to your inventory</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-chocolate-100 rounded-lg transition-colors duration-300"
+          >
+            <X className="w-6 h-6 text-chocolate-500" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+        {/* Modal Form */}
+        <form onSubmit={handleSubmit} className="p-8 space-y-6">
+          {/* Supplier & Date Row */}
+          <div className="grid grid-cols-2 gap-6">
             <div>
-              <label className="block text-xs font-bold text-chocolate-700 uppercase tracking-wider mb-1.5">Supplier *</label>
+              <label className="block text-sm font-bold text-chocolate-950 mb-2">Supplier Name *</label>
               <input
                 type="text"
                 value={supplier}
                 onChange={e => setSupplier(e.target.value)}
                 required
-                placeholder="Supplier name"
-                className="w-full px-3 py-2.5 border border-chocolate-200 rounded-lg text-sm focus:outline-none focus:border-chocolate-400"
+                placeholder="Enter supplier name"
+                className="w-full px-4 py-3 border border-chocolate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all duration-300"
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-chocolate-700 uppercase tracking-wider mb-1.5">Expected Delivery</label>
+              <label className="block text-sm font-bold text-chocolate-950 mb-2">Expected Delivery</label>
               <input
                 type="date"
                 value={expectedDate}
                 onChange={e => setExpectedDate(e.target.value)}
-                className="w-full px-3 py-2.5 border border-chocolate-200 rounded-lg text-sm focus:outline-none focus:border-chocolate-400"
+                className="w-full px-4 py-3 border border-chocolate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all duration-300"
               />
             </div>
           </div>
 
+          {/* Notes */}
           <div>
-            <label className="block text-xs font-bold text-chocolate-700 uppercase tracking-wider mb-1.5">Notes</label>
+            <label className="block text-sm font-bold text-chocolate-950 mb-2">Notes</label>
             <textarea
               value={notes}
               onChange={e => setNotes(e.target.value)}
-              placeholder="Additional notes..."
+              placeholder="Add any additional notes about this order..."
               rows="2"
-              className="w-full px-3 py-2.5 border border-chocolate-200 rounded-lg text-sm focus:outline-none focus:border-chocolate-400 resize-none"
+              className="w-full px-4 py-3 border border-chocolate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all duration-300 resize-none"
             />
           </div>
 
-          <div className="border-t border-chocolate-100 pt-4">
-            <label className="block text-xs font-bold text-chocolate-700 uppercase tracking-wider mb-3">Line Items</label>
-            <div className="space-y-2">
+          {/* Line Items Section */}
+          <div className="space-y-4 pt-4 border-t border-chocolate-100">
+            <div className="flex items-center justify-between">
+              <label className="block text-sm font-bold text-chocolate-950">Line Items</label>
+              <span className="text-xs text-chocolate-600 font-medium">{items.length} item{items.length !== 1 ? 's' : ''}</span>
+            </div>
+
+            <div className="space-y-3">
               {items.map((item, i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <select
-                    value={item.supplement_id}
-                    onChange={e => updateItem(i, 'supplement_id', e.target.value)}
-                    className="flex-1 px-3 py-2 border border-chocolate-200 rounded-lg text-sm focus:outline-none focus:border-chocolate-400"
-                  >
-                    <option value="">Select supplement</option>
-                    {supplements.map(s => (
-                      <option key={s.id} value={s.id}>{s.name}</option>
-                    ))}
-                  </select>
-                  <input
-                    type="number"
-                    step="0.001"
-                    min="0"
-                    value={item.quantity_kg}
-                    onChange={e => updateItem(i, 'quantity_kg', e.target.value)}
-                    placeholder="Qty (kg)"
-                    className="w-24 px-3 py-2 border border-chocolate-200 rounded-lg text-sm focus:outline-none focus:border-chocolate-400"
-                  />
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={item.unit_price}
-                    onChange={e => updateItem(i, 'unit_price', e.target.value)}
-                    placeholder="$/kg"
-                    className="w-24 px-3 py-2 border border-chocolate-200 rounded-lg text-sm focus:outline-none focus:border-chocolate-400"
-                  />
+                <div
+                  key={i}
+                  className="flex items-end gap-3 p-4 bg-gradient-to-r from-chocolate-50 to-transparent rounded-xl border border-chocolate-100 hover:border-chocolate-200 transition-all duration-300"
+                >
+                  <div className="flex-1">
+                    <label className="block text-xs font-bold text-chocolate-700 mb-1.5 uppercase tracking-wider">Supplement</label>
+                    <select
+                      value={item.supplement_id}
+                      onChange={e => updateItem(i, 'supplement_id', e.target.value)}
+                      className="w-full px-4 py-2.5 border border-chocolate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all duration-300 appearance-none bg-white cursor-pointer"
+                      style={{
+                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23999' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+                        backgroundRepeat: 'no-repeat',
+                        backgroundPosition: 'right 12px center',
+                        paddingRight: '36px'
+                      }}
+                    >
+                      <option value="">Select supplement</option>
+                      {supplements.map(s => (
+                        <option key={s.id} value={s.id}>{s.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="w-32">
+                    <label className="block text-xs font-bold text-chocolate-700 mb-1.5 uppercase tracking-wider">Qty (kg)</label>
+                    <input
+                      type="number"
+                      step="0.001"
+                      min="0"
+                      value={item.quantity_kg}
+                      onChange={e => updateItem(i, 'quantity_kg', e.target.value)}
+                      placeholder="0.000"
+                      className="w-full px-3 py-2.5 border border-chocolate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all duration-300"
+                    />
+                  </div>
+
+                  <div className="w-32">
+                    <label className="block text-xs font-bold text-chocolate-700 mb-1.5 uppercase tracking-wider">$/kg</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={item.unit_price}
+                      onChange={e => updateItem(i, 'unit_price', e.target.value)}
+                      placeholder="0.00"
+                      className="w-full px-3 py-2.5 border border-chocolate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all duration-300"
+                    />
+                  </div>
+
                   {items.length > 1 && (
-                    <button type="button" onClick={() => removeItem(i)} className="p-1.5 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded">
+                    <button
+                      type="button"
+                      onClick={() => removeItem(i)}
+                      className="p-2.5 text-chocolate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all duration-300"
+                      title="Remove item"
+                    >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   )}
                 </div>
               ))}
             </div>
-            <button type="button" onClick={addItem} className="text-sm font-medium text-rose-600 hover:text-rose-700 mt-2">
-              + Add Item
+
+            <button
+              type="button"
+              onClick={addItem}
+              className="flex items-center gap-2 text-sm font-bold text-rose-600 hover:text-rose-700 px-4 py-2.5 hover:bg-rose-50 rounded-lg transition-all duration-300 mt-3"
+            >
+              <Plus className="w-4 h-4" />
+              Add Item
             </button>
           </div>
 
+          {/* Order Total */}
           {total > 0 && (
-            <div className="text-right text-sm text-chocolate-700">
-              Order Total: <span className="font-bold text-chocolate-950">${total.toFixed(2)}</span>
+            <div className="bg-gradient-to-r from-amber-50 to-rose-50 rounded-xl p-4 border border-amber-200">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-bold text-chocolate-950">Estimated Total:</span>
+                <span className="text-2xl font-bold bg-gradient-to-r from-rose-600 to-amber-600 bg-clip-text text-transparent">
+                  ${total.toFixed(2)}
+                </span>
+              </div>
             </div>
           )}
 
-          <div className="flex items-center gap-3 pt-2">
-            <button type="button" onClick={onClose} className="flex-1 px-4 py-2.5 text-sm font-medium text-chocolate-700 bg-chocolate-100 hover:bg-chocolate-200 rounded-lg transition-colors">
+          {/* Action Buttons */}
+          <div className="flex items-center gap-3 pt-6 border-t border-chocolate-100">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-6 py-3 text-sm font-bold text-chocolate-700 bg-chocolate-100 hover:bg-chocolate-200 rounded-xl transition-all duration-300"
+            >
               Cancel
             </button>
-            <button type="submit" disabled={saving} className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-rose-500 hover:bg-rose-600 disabled:opacity-50 rounded-lg transition-colors">
-              {saving ? 'Creating...' : 'Create Order'}
+            <button
+              type="submit"
+              disabled={saving}
+              className="flex-1 px-6 py-3 text-sm font-bold text-white bg-gradient-to-r from-rose-500 to-amber-500 hover:from-rose-600 hover:to-amber-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+            >
+              {saving ? (
+                <>
+                  <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin"></div>
+                  Creating...
+                </>
+              ) : (
+                'Create Order'
+              )}
             </button>
           </div>
         </form>

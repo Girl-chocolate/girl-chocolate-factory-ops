@@ -75,7 +75,12 @@ export default function InventoryOverview() {
     else setSelectedRows(new Set(supplements.map(s => s.id)))
   }
 
-  const isLowStock = (s) => s.on_hand_kg < (s.low_stock_threshold || 0.5)
+  const getStockStatus = (s) => {
+    const threshold = s.low_stock_threshold || 0.5
+    if (s.on_hand_kg < threshold * 0.5) return { status: 'Critical', color: 'text-red-600', bgColor: 'bg-red-50', dotColor: 'bg-red-500' }
+    if (s.on_hand_kg < threshold) return { status: 'Low Stock', color: 'text-amber-600', bgColor: 'bg-amber-50', dotColor: 'bg-amber-500' }
+    return { status: 'In Stock', color: 'text-green-600', bgColor: 'bg-green-50', dotColor: 'bg-green-500' }
+  }
 
   if (loading) {
     return (
@@ -89,46 +94,80 @@ export default function InventoryOverview() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-chocolate-950">Inventory Dashboard</h1>
-        <p className="text-chocolate-600 mt-1">Welcome back, Chocolatier. Here is the status of your factory.</p>
+    <div className="animate-fadeIn space-y-6 p-6">
+      {/* Page Header */}
+      <div className="mb-8">
+        <div className="flex items-start gap-3">
+          <span className="text-4xl">🍫</span>
+          <div>
+            <h1 className="text-4xl font-bold text-chocolate-950">Inventory Dashboard</h1>
+            <p className="text-chocolate-600 mt-2 text-lg">Welcome back, Chocolatier. Here is the status of your factory.</p>
+          </div>
+        </div>
       </div>
 
       {/* Stat Cards */}
       {stats && (
-        <div className="grid grid-cols-3 gap-4">
-          <div className="bg-white rounded-lg border border-chocolate-200 p-5 border-l-4 border-l-chocolate-700">
-            <p className="text-[11px] font-bold tracking-wider text-chocolate-700 uppercase">Total Inventory Value</p>
-            <p className="text-2xl font-bold text-chocolate-900 mt-1">${stats.inventory_value?.toFixed(2) || '0.00'}</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Total Inventory Value */}
+          <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-rose-50 to-orange-50 p-6 backdrop-blur-md border border-rose-100/50 hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
+            <div className="absolute inset-0 bg-gradient-to-br from-rose-200/10 to-orange-200/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-xs font-bold tracking-widest text-rose-700 uppercase">Total Inventory Value</p>
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-400 to-orange-400 flex items-center justify-center">
+                  <span className="text-lg">💰</span>
+                </div>
+              </div>
+              <p className="text-3xl font-bold text-rose-900">${stats.inventory_value?.toFixed(2) || '0.00'}</p>
+            </div>
           </div>
-          <div className="bg-white rounded-lg border border-chocolate-200 p-5 border-l-4 border-l-chocolate-700">
-            <p className="text-[11px] font-bold tracking-wider text-chocolate-700 uppercase">Unique Ingredients</p>
-            <p className="text-2xl font-bold text-chocolate-900 mt-1">{stats.unique_ingredients || 0}</p>
+
+          {/* Unique Ingredients */}
+          <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 p-6 backdrop-blur-md border border-emerald-100/50 hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
+            <div className="absolute inset-0 bg-gradient-to-br from-emerald-200/10 to-teal-200/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-xs font-bold tracking-widest text-emerald-700 uppercase">Unique Ingredients</p>
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-400 flex items-center justify-center">
+                  <span className="text-lg">🏭</span>
+                </div>
+              </div>
+              <p className="text-3xl font-bold text-emerald-900">{stats.unique_ingredients || 0}</p>
+            </div>
           </div>
-          <div className="bg-white rounded-lg border border-chocolate-200 p-5 border-l-4 border-l-rose-500">
-            <p className="text-[11px] font-bold tracking-wider text-chocolate-700 uppercase">Low Stock Alerts</p>
-            <p className={`text-2xl font-bold mt-1 ${(stats.low_stock_alerts || 0) > 0 ? 'text-rose-500' : 'text-chocolate-900'}`}>
-              {stats.low_stock_alerts || 0}
-            </p>
+
+          {/* Low Stock Alerts */}
+          <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-red-50 to-pink-50 p-6 backdrop-blur-md border border-red-100/50 hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
+            <div className="absolute inset-0 bg-gradient-to-br from-red-200/10 to-pink-200/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-xs font-bold tracking-widest text-red-700 uppercase">Low Stock Alerts</p>
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-400 to-pink-400 flex items-center justify-center">
+                  <span className="text-lg">⚠️</span>
+                </div>
+              </div>
+              <p className={`text-3xl font-bold ${(stats.low_stock_alerts || 0) > 0 ? 'text-red-900' : 'text-red-900'}`}>
+                {stats.low_stock_alerts || 0}
+              </p>
+            </div>
           </div>
         </div>
       )}
 
       {/* Stock Levels Section */}
-      <div className="bg-white rounded-lg border border-chocolate-200 shadow-chocolate">
+      <div className="rounded-2xl overflow-hidden bg-white/80 backdrop-blur-sm border border-chocolate-100/50 shadow-lg">
         {/* Section Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-chocolate-100">
+        <div className="flex items-center justify-between px-8 py-6 border-b border-chocolate-100/50">
           <div>
-            <h2 className="text-lg font-bold text-chocolate-950">Current Stock Levels</h2>
-            <p className="text-sm text-chocolate-500">Real-time supplement inventory in the factory</p>
+            <h2 className="text-2xl font-bold text-chocolate-950">Current Stock Levels</h2>
+            <p className="text-sm text-chocolate-500 mt-1">Real-time supplement inventory in the factory</p>
           </div>
           <button
             onClick={() => { setEditingSupplement(null); setShowAddModal(true) }}
-            className="flex items-center gap-2 bg-chocolate-950 hover:bg-chocolate-900 text-white text-sm font-medium px-4 py-2 rounded-full transition-colors"
+            className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-rose-500 hover:shadow-lg hover:shadow-rose-300/50 active:scale-95 text-white text-sm font-semibold px-6 py-3 rounded-full transition-all duration-300"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-5 h-5" />
             Add New Supplement
           </button>
         </div>
@@ -137,106 +176,106 @@ export default function InventoryOverview() {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-chocolate-100">
-                <th className="w-10 px-4 py-3">
+              <tr className="bg-chocolate-50/50 border-b border-chocolate-100/50">
+                <th className="w-10 px-6 py-4">
                   <input
                     type="checkbox"
                     checked={selectedRows.size === supplements.length && supplements.length > 0}
                     onChange={toggleAll}
-                    className="rounded border-chocolate-300"
+                    className="rounded border-chocolate-300 cursor-pointer transition-colors duration-300"
                   />
                 </th>
-                <th className="text-left px-4 py-3 text-[11px] font-bold tracking-wider text-chocolate-600 uppercase">Supplement Name</th>
-                <th className="text-left px-4 py-3 text-[11px] font-bold tracking-wider text-chocolate-600 uppercase">Supplier</th>
-                <th className="text-right px-4 py-3 text-[11px] font-bold tracking-wider text-chocolate-600 uppercase">Unit Price ($/kg)</th>
-                <th className="text-right px-4 py-3 text-[11px] font-bold tracking-wider text-chocolate-600 uppercase">On Hand (kg)</th>
-                <th className="text-right px-4 py-3 text-[11px] font-bold tracking-wider text-chocolate-600 uppercase">Incoming (kg)</th>
-                <th className="text-right px-4 py-3 text-[11px] font-bold tracking-wider text-chocolate-600 uppercase">Total Value ($)</th>
-                <th className="text-center px-4 py-3 text-[11px] font-bold tracking-wider text-chocolate-600 uppercase">Actions</th>
+                <th className="text-left px-6 py-4 text-xs font-bold tracking-widest text-chocolate-600 uppercase">Supplement Name</th>
+                <th className="text-left px-6 py-4 text-xs font-bold tracking-widest text-chocolate-600 uppercase">Supplier</th>
+                <th className="text-right px-6 py-4 text-xs font-bold tracking-widest text-chocolate-600 uppercase">Unit Price ($/kg)</th>
+                <th className="text-right px-6 py-4 text-xs font-bold tracking-widest text-chocolate-600 uppercase">On Hand (kg)</th>
+                <th className="text-right px-6 py-4 text-xs font-bold tracking-widest text-chocolate-600 uppercase">Incoming (kg)</th>
+                <th className="text-right px-6 py-4 text-xs font-bold tracking-widest text-chocolate-600 uppercase">Total Value ($)</th>
+                <th className="text-center px-6 py-4 text-xs font-bold tracking-widest text-chocolate-600 uppercase">Status</th>
+                <th className="text-center px-6 py-4 text-xs font-bold tracking-widest text-chocolate-600 uppercase">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {supplements.map((s) => (
-                <tr key={s.id} className="border-b border-chocolate-50 hover:bg-chocolate-50/50 transition-colors">
-                  <td className="px-4 py-4">
-                    <input
-                      type="checkbox"
-                      checked={selectedRows.has(s.id)}
-                      onChange={() => toggleRow(s.id)}
-                      className="rounded border-chocolate-300"
-                    />
-                  </td>
-                  <td className="px-4 py-4">
-                    <div>
-                      <p className="font-semibold text-chocolate-950 text-sm">{s.name}</p>
-                      <p className="text-xs text-chocolate-400 mt-0.5">ID: {s.id}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Mail className="w-3 h-3 text-chocolate-400" />
-                        <ExternalLink className="w-3 h-3 text-chocolate-400" />
+              {supplements.map((s, idx) => {
+                const statusInfo = getStockStatus(s)
+                return (
+                  <tr key={s.id} className={`border-b border-chocolate-50/50 transition-colors duration-300 ${idx % 2 === 0 ? 'bg-white/50' : 'bg-chocolate-50/20'} hover:bg-rose-50/30`}>
+                    <td className="px-6 py-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedRows.has(s.id)}
+                        onChange={() => toggleRow(s.id)}
+                        className="rounded border-chocolate-300 cursor-pointer transition-colors duration-300"
+                      />
+                    </td>
+                    <td className="px-6 py-4">
+                      <div>
+                        <p className="font-bold text-chocolate-950 text-sm">{s.name}</p>
+                        <p className="text-xs text-chocolate-400 mt-0.5">ID: {s.id}</p>
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-4">
-                    <div>
-                      <p className="text-sm text-chocolate-800">{s.supplier_name || '—'}</p>
-                      {s.supplier_name && (
-                        <div className="flex items-center gap-2 mt-1">
-                          <Mail className="w-3 h-3 text-chocolate-400" />
-                          <ExternalLink className="w-3 h-3 text-chocolate-400" />
-                        </div>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-4 py-4 text-right text-sm text-chocolate-800 font-medium">
-                    ${s.unit_price?.toFixed(2) || '0.00'}
-                  </td>
-                  <td className="px-4 py-4 text-right">
-                    <span className={`text-sm font-bold ${isLowStock(s) ? 'text-rose-500' : 'text-chocolate-800'}`}>
-                      {s.on_hand_kg?.toFixed(3) || '0.000'}
-                    </span>
-                  </td>
-                  <td className="px-4 py-4 text-right text-sm text-chocolate-600">
-                    {s.incoming_kg > 0 ? s.incoming_kg.toFixed(3) : '–'}
-                  </td>
-                  <td className="px-4 py-4 text-right text-sm font-semibold text-chocolate-800">
-                    ${(s.on_hand_kg * s.unit_price).toFixed(2)}
-                  </td>
-                  <td className="px-4 py-4">
-                    <div className="flex items-center justify-center gap-1">
-                      <button
-                        onClick={() => openDocuments(s)}
-                        className="relative p-1.5 text-chocolate-500 hover:text-chocolate-800 hover:bg-chocolate-100 rounded transition-colors"
-                        title="Documents"
-                      >
-                        <FileText className="w-4 h-4" />
-                        <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-blue-500 rounded-full"></span>
-                      </button>
-                      <button
-                        onClick={() => { setEditingSupplement(s); setShowAddModal(true) }}
-                        className="relative p-1.5 text-chocolate-500 hover:text-chocolate-800 hover:bg-chocolate-100 rounded transition-colors"
-                        title="Edit"
-                      >
-                        <Edit2 className="w-4 h-4" />
-                        <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-blue-500 rounded-full"></span>
-                      </button>
-                      <button
-                        onClick={() => handleDeleteSupplement(s.id)}
-                        className="p-1.5 text-chocolate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors"
-                        title="Delete"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div>
+                        <p className="text-sm text-chocolate-800 font-medium">{s.supplier_name || '—'}</p>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-right text-sm text-chocolate-800 font-semibold">
+                      ${s.unit_price?.toFixed(2) || '0.00'}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <span className={`text-sm font-bold ${statusInfo.color}`}>
+                        {s.on_hand_kg?.toFixed(3) || '0.000'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-right text-sm text-chocolate-600 font-medium">
+                      {s.incoming_kg > 0 ? s.incoming_kg.toFixed(3) : '–'}
+                    </td>
+                    <td className="px-6 py-4 text-right text-sm font-bold text-chocolate-900">
+                      ${(s.on_hand_kg * s.unit_price).toFixed(2)}
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        <div className={`w-2 h-2 rounded-full animate-pulse ${statusInfo.dotColor}`}></div>
+                        <span className={`text-xs font-bold px-3 py-1 rounded-full ${statusInfo.bgColor} ${statusInfo.color}`}>
+                          {statusInfo.status}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          onClick={() => openDocuments(s)}
+                          className="p-2 text-chocolate-500 hover:text-chocolate-800 hover:scale-110 bg-chocolate-50 hover:bg-chocolate-100 rounded-lg transition-all duration-300"
+                          title="Documents"
+                        >
+                          <FileText className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => { setEditingSupplement(s); setShowAddModal(true) }}
+                          className="p-2 text-chocolate-500 hover:text-amber-600 hover:scale-110 bg-chocolate-50 hover:bg-amber-50 rounded-lg transition-all duration-300"
+                          title="Edit"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteSupplement(s.id)}
+                          className="p-2 text-chocolate-400 hover:text-rose-600 hover:scale-110 bg-chocolate-50 hover:bg-rose-50 rounded-lg transition-all duration-300"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>
 
         {supplements.length === 0 && (
           <div className="text-center py-16">
-            <p className="text-chocolate-500">No supplements found. Add your first one!</p>
+            <p className="text-chocolate-500 text-lg">No supplements found. Add your first one!</p>
           </div>
         )}
       </div>
@@ -311,20 +350,20 @@ function AddSupplementModal({ supplement, onClose, onSaved }) {
   }
 
   return (
-    <div className="fixed inset-0 modal-overlay flex items-center justify-center z-50 animate-fadeIn" onClick={onClose}>
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 animate-slideUp" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-chocolate-100">
-          <h2 className="text-xl font-bold text-chocolate-950">
+    <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn bg-black/20" onClick={onClose}>
+      <div className="bg-white/95 rounded-2xl shadow-2xl w-full max-w-lg mx-4 animate-slideUp overflow-hidden border border-white/20" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-8 py-6 border-b border-chocolate-100/50 bg-gradient-to-r from-rose-50/50 to-orange-50/50">
+          <h2 className="text-2xl font-bold text-chocolate-950">
             {supplement ? 'Edit Supplement' : 'Add New Supplement'}
           </h2>
-          <button onClick={onClose} className="p-1 hover:bg-chocolate-100 rounded-lg transition-colors">
-            <X className="w-5 h-5 text-chocolate-500" />
+          <button onClick={onClose} className="p-2 hover:bg-chocolate-200/50 rounded-lg transition-all duration-300 hover:scale-110">
+            <X className="w-5 h-5 text-chocolate-600" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-8 space-y-6">
           <div>
-            <label className="block text-xs font-bold text-chocolate-700 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-chocolate-700 uppercase tracking-widest mb-2">
               Supplement Name
             </label>
             <input
@@ -332,29 +371,29 @@ function AddSupplementModal({ supplement, onClose, onSaved }) {
               value={name}
               onChange={e => setName(e.target.value)}
               placeholder="e.g. Zinc Citrate"
-              className="w-full px-3 py-2.5 border-2 border-rose-200 rounded-lg text-sm focus:outline-none focus:border-rose-400 bg-rose-50/30"
+              className="w-full px-4 py-3 border-2 border-rose-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-transparent bg-white transition-all duration-300"
               required
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-6">
             <div>
-              <label className="block text-xs font-bold text-chocolate-700 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-bold text-chocolate-700 uppercase tracking-widest mb-2">
                 Current Stock
               </label>
-              <div className="flex">
+              <div className="flex overflow-hidden rounded-xl border-2 border-chocolate-200 hover:border-chocolate-300 transition-colors duration-300">
                 <input
                   type="number"
                   step="0.001"
                   min="0"
                   value={stock}
                   onChange={e => setStock(e.target.value)}
-                  className="flex-1 px-3 py-2.5 border border-chocolate-200 rounded-l-lg text-sm focus:outline-none focus:border-chocolate-400"
+                  className="flex-1 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-rose-400 focus:ring-inset bg-white"
                 />
                 <select
                   value={unit}
                   onChange={e => setUnit(e.target.value)}
-                  className="px-2 py-2.5 border border-l-0 border-chocolate-200 rounded-r-lg text-sm bg-chocolate-50 text-chocolate-700"
+                  className="px-3 py-3 border-l-2 border-chocolate-200 text-sm bg-chocolate-50 text-chocolate-700 font-medium cursor-pointer hover:bg-chocolate-100 transition-colors duration-300"
                 >
                   <option value="kg">kg</option>
                   <option value="g">g</option>
@@ -362,7 +401,7 @@ function AddSupplementModal({ supplement, onClose, onSaved }) {
               </div>
             </div>
             <div>
-              <label className="block text-xs font-bold text-chocolate-700 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-bold text-chocolate-700 uppercase tracking-widest mb-2">
                 Price Per KG ($)
               </label>
               <input
@@ -371,55 +410,55 @@ function AddSupplementModal({ supplement, onClose, onSaved }) {
                 min="0"
                 value={price}
                 onChange={e => setPrice(e.target.value)}
-                className="w-full px-3 py-2.5 border border-chocolate-200 rounded-lg text-sm focus:outline-none focus:border-chocolate-400"
+                className="w-full px-4 py-3 border-2 border-chocolate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-transparent bg-white transition-all duration-300"
               />
             </div>
           </div>
 
           {/* Supplier Details (collapsible) */}
-          <div className="border border-chocolate-200 rounded-lg overflow-hidden">
+          <div className="rounded-xl overflow-hidden border-2 border-chocolate-200 hover:border-chocolate-300 transition-colors duration-300">
             <button
               type="button"
               onClick={() => setShowSupplier(!showSupplier)}
-              className="flex items-center justify-between w-full px-4 py-3 bg-chocolate-50 text-sm font-semibold text-chocolate-800"
+              className="flex items-center justify-between w-full px-6 py-4 bg-chocolate-50/80 hover:bg-chocolate-100/50 text-sm font-bold text-chocolate-800 transition-colors duration-300"
             >
-              <span className="flex items-center gap-2">
-                <span>🏭</span>
+              <span className="flex items-center gap-3">
+                <span className="text-lg">🏭</span>
                 Supplier Details (Optional)
               </span>
-              {showSupplier ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              {showSupplier ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
             </button>
             {showSupplier && (
-              <div className="p-4 space-y-3">
+              <div className="p-6 space-y-4 bg-white border-t-2 border-chocolate-200/50">
                 <div>
-                  <label className="block text-xs font-bold text-chocolate-600 uppercase tracking-wider mb-1">Company Name</label>
+                  <label className="block text-xs font-bold text-chocolate-600 uppercase tracking-widest mb-2">Company Name</label>
                   <input
                     type="text"
                     value={supplierName}
                     onChange={e => setSupplierName(e.target.value)}
                     placeholder="e.g. NutriChem Supply"
-                    className="w-full px-3 py-2 border border-chocolate-200 rounded-lg text-sm focus:outline-none focus:border-chocolate-400"
+                    className="w-full px-4 py-2.5 border-2 border-chocolate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-transparent bg-white transition-all duration-300"
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-chocolate-600 uppercase tracking-wider mb-1">Email</label>
+                    <label className="block text-xs font-bold text-chocolate-600 uppercase tracking-widest mb-2">Email</label>
                     <input
                       type="email"
                       value={supplierEmail}
                       onChange={e => setSupplierEmail(e.target.value)}
                       placeholder="sales@company.com"
-                      className="w-full px-3 py-2 border border-chocolate-200 rounded-lg text-sm focus:outline-none focus:border-chocolate-400"
+                      className="w-full px-4 py-2.5 border-2 border-chocolate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-transparent bg-white transition-all duration-300"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-chocolate-600 uppercase tracking-wider mb-1">Website</label>
+                    <label className="block text-xs font-bold text-chocolate-600 uppercase tracking-widest mb-2">Website</label>
                     <input
                       type="url"
                       value={supplierWebsite}
                       onChange={e => setSupplierWebsite(e.target.value)}
                       placeholder="company.com"
-                      className="w-full px-3 py-2 border border-chocolate-200 rounded-lg text-sm focus:outline-none focus:border-chocolate-400"
+                      className="w-full px-4 py-2.5 border-2 border-chocolate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-transparent bg-white transition-all duration-300"
                     />
                   </div>
                 </div>
@@ -427,18 +466,18 @@ function AddSupplementModal({ supplement, onClose, onSaved }) {
             )}
           </div>
 
-          <div className="flex items-center gap-3 pt-2">
+          <div className="flex items-center gap-4 pt-4">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2.5 text-sm font-medium text-chocolate-700 bg-chocolate-100 hover:bg-chocolate-200 rounded-lg transition-colors"
+              className="flex-1 px-4 py-3 text-sm font-bold text-chocolate-700 bg-chocolate-100 hover:bg-chocolate-200 rounded-xl transition-all duration-300 hover:shadow-md"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-rose-500 hover:bg-rose-600 disabled:opacity-50 rounded-lg transition-colors"
+              className="flex-1 px-4 py-3 text-sm font-bold text-white bg-gradient-to-r from-rose-500 to-orange-500 hover:shadow-lg hover:shadow-rose-300/50 disabled:opacity-50 disabled:shadow-none rounded-xl transition-all duration-300 active:scale-95"
             >
               {saving ? 'Saving...' : supplement ? 'Update Item' : 'Add Item'}
             </button>
@@ -483,45 +522,42 @@ function DocumentsModal({ supplement, documents, onClose, onDeleteDoc, onDocAdde
   }
 
   return (
-    <div className="fixed inset-0 modal-overlay flex items-center justify-center z-50 animate-fadeIn" onClick={onClose}>
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 animate-slideUp" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-chocolate-100">
+    <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn bg-black/20" onClick={onClose}>
+      <div className="bg-white/95 rounded-2xl shadow-2xl w-full max-w-lg mx-4 animate-slideUp overflow-hidden border border-white/20" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-8 py-6 border-b border-chocolate-100/50 bg-gradient-to-r from-blue-50/50 to-indigo-50/50">
           <div>
-            <h2 className="text-xl font-bold text-chocolate-950">Documents</h2>
-            <p className="text-sm text-chocolate-500">For {supplement.name}</p>
+            <h2 className="text-2xl font-bold text-chocolate-950">Documents</h2>
+            <p className="text-sm text-chocolate-500 mt-1">For <span className="font-semibold text-chocolate-700">{supplement.name}</span></p>
           </div>
-          <button onClick={onClose} className="p-1 hover:bg-chocolate-100 rounded-lg transition-colors">
-            <X className="w-5 h-5 text-chocolate-500" />
+          <button onClick={onClose} className="p-2 hover:bg-chocolate-200/50 rounded-lg transition-all duration-300 hover:scale-110">
+            <X className="w-5 h-5 text-chocolate-600" />
           </button>
         </div>
 
         <div className="p-6 space-y-3 max-h-80 overflow-y-auto">
           {documents.length === 0 ? (
-            <p className="text-center text-chocolate-500 py-4 text-sm">No documents yet</p>
+            <p className="text-center text-chocolate-500 py-8 text-sm">No documents yet. Add one below to get started!</p>
           ) : (
             documents.map(doc => (
-              <div key={doc.id} className="flex items-center justify-between p-3 bg-chocolate-50 rounded-lg border border-chocolate-100">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-rose-100 rounded flex items-center justify-center">
-                    <FileText className="w-4 h-4 text-rose-600" />
+              <div key={doc.id} className="flex items-center justify-between p-4 bg-gradient-to-r from-chocolate-50/50 to-orange-50/30 rounded-xl border border-chocolate-100/50 hover:bg-orange-50/50 transition-all duration-300 hover:shadow-md">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-gradient-to-br from-rose-200 to-orange-200 rounded-lg flex items-center justify-center">
+                    <FileText className="w-5 h-5 text-rose-600" />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-chocolate-900 flex items-center gap-1">
-                      {doc.name}
-                      <Edit2 className="w-3 h-3 text-chocolate-400" />
-                    </p>
-                    <p className="text-xs text-chocolate-500">{new Date(doc.created_at).toLocaleDateString()}</p>
+                    <p className="text-sm font-bold text-chocolate-900">{doc.name}</p>
+                    <p className="text-xs text-chocolate-500 mt-1">{new Date(doc.created_at).toLocaleDateString()}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-2">
                   {doc.link_url && (
-                    <a href={doc.link_url} target="_blank" rel="noopener noreferrer" className="p-1.5 text-chocolate-500 hover:text-chocolate-800 hover:bg-chocolate-100 rounded transition-colors">
+                    <a href={doc.link_url} target="_blank" rel="noopener noreferrer" className="p-2 text-chocolate-600 hover:text-blue-600 hover:scale-110 bg-chocolate-50 hover:bg-blue-50 rounded-lg transition-all duration-300">
                       <Eye className="w-4 h-4" />
                     </a>
                   )}
                   <button
                     onClick={() => onDeleteDoc(doc.id)}
-                    className="p-1.5 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors"
+                    className="p-2 text-rose-500 hover:text-rose-700 hover:scale-110 bg-rose-50 hover:bg-rose-100 rounded-lg transition-all duration-300"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -532,54 +568,54 @@ function DocumentsModal({ supplement, documents, onClose, onDeleteDoc, onDocAdde
         </div>
 
         {/* Add document section */}
-        <div className="px-6 pb-6 border-t border-chocolate-100 pt-4">
-          <div className="flex items-center gap-4 mb-3">
+        <div className="px-8 pb-8 border-t border-chocolate-100/50 pt-6">
+          <div className="flex items-center gap-4 mb-6 p-1 bg-chocolate-50/50 rounded-lg">
             <button
               onClick={() => setActiveTab('upload')}
-              className={`flex items-center gap-1.5 text-sm font-medium ${activeTab === 'upload' ? 'text-rose-600' : 'text-chocolate-500'}`}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 ${activeTab === 'upload' ? 'bg-white text-rose-600 shadow-md' : 'text-chocolate-500 hover:text-chocolate-700'}`}
             >
-              <Upload className="w-3.5 h-3.5" />
+              <Upload className="w-4 h-4" />
               Upload File
             </button>
             <button
               onClick={() => setActiveTab('link')}
-              className={`flex items-center gap-1.5 text-sm font-medium ${activeTab === 'link' ? 'text-rose-600' : 'text-chocolate-500'}`}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 ${activeTab === 'link' ? 'bg-white text-rose-600 shadow-md' : 'text-chocolate-500 hover:text-chocolate-700'}`}
             >
-              <LinkIcon className="w-3.5 h-3.5" />
+              <LinkIcon className="w-4 h-4" />
               Add Link
             </button>
           </div>
 
-          <div className="space-y-2">
-            <div className="grid grid-cols-2 gap-2">
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-chocolate-600 uppercase tracking-wider mb-1">Document Name (Optional)</label>
+                <label className="block text-xs font-bold text-chocolate-700 uppercase tracking-widest mb-2">Document Name (Optional)</label>
                 <input
                   type="text"
                   value={docName}
                   onChange={e => setDocName(e.target.value)}
                   placeholder="e.g. COA - Batch 102"
-                  className="w-full px-3 py-2 border border-chocolate-200 rounded-lg text-sm focus:outline-none focus:border-chocolate-400"
+                  className="w-full px-4 py-2.5 border-2 border-chocolate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-transparent bg-white transition-all duration-300"
                 />
               </div>
               {activeTab === 'link' ? (
                 <div>
-                  <label className="block text-xs font-bold text-chocolate-600 uppercase tracking-wider mb-1">URL</label>
+                  <label className="block text-xs font-bold text-chocolate-700 uppercase tracking-widest mb-2">URL</label>
                   <input
                     type="url"
                     value={docLink}
                     onChange={e => setDocLink(e.target.value)}
                     placeholder="https://..."
-                    className="w-full px-3 py-2 border border-chocolate-200 rounded-lg text-sm focus:outline-none focus:border-chocolate-400"
+                    className="w-full px-4 py-2.5 border-2 border-chocolate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-transparent bg-white transition-all duration-300"
                   />
                 </div>
               ) : (
                 <div>
-                  <label className="block text-xs font-bold text-chocolate-600 uppercase tracking-wider mb-1">File</label>
+                  <label className="block text-xs font-bold text-chocolate-700 uppercase tracking-widest mb-2">File</label>
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      className="px-3 py-2 bg-rose-500 hover:bg-rose-600 text-white text-xs font-medium rounded-lg transition-colors"
+                      className="px-4 py-2.5 bg-gradient-to-r from-rose-500 to-orange-500 hover:shadow-md hover:shadow-rose-300/50 text-white text-xs font-bold rounded-lg transition-all duration-300 active:scale-95"
                     >
                       Choose File
                     </button>
@@ -591,7 +627,7 @@ function DocumentsModal({ supplement, documents, onClose, onDeleteDoc, onDocAdde
             <button
               onClick={handleAddDocument}
               disabled={uploading}
-              className="w-full mt-2 px-4 py-2 bg-chocolate-950 hover:bg-chocolate-900 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+              className="w-full px-6 py-3 bg-gradient-to-r from-chocolate-950 to-rose-950 hover:shadow-lg hover:shadow-chocolate-900/50 text-white text-sm font-bold rounded-xl transition-all duration-300 disabled:opacity-50 disabled:shadow-none active:scale-95"
             >
               {uploading ? 'Adding...' : 'Add Document'}
             </button>

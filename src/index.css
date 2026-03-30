@@ -8,53 +8,63 @@
   box-sizing: border-box;
 }
 
-body {
-  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
-  background-color: #fdf8f6;
-  color: #43302b;
-}
-
 html {
   scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-.bg-cream-50 {
-  background-color: #fdf8f6;
+body {
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  background-color: #faf8f6;
+  color: #1c1917;
+  -webkit-font-smoothing: antialiased;
 }
 
+/* Custom Utility Classes */
+.glass {
+  @apply backdrop-blur bg-white/60 border border-white/20 rounded-lg;
+}
+
+.card-hover {
+  @apply transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl;
+}
+
+.gradient-accent {
+  @apply bg-gradient-to-r from-rose-500 to-amber-500;
+}
+
+.gradient-accent-hover {
+  @apply hover:bg-gradient-to-r hover:from-rose-600 hover:to-amber-600;
+}
+
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f2e8e5;
+  background: #f5f1ee;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #a18072;
+  background: #d4ccc7;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #846358;
+  background: #c4bbb7;
 }
 
-.shadow-chocolate {
-  box-shadow: 0 1px 3px rgba(67, 48, 43, 0.08), 0 1px 2px rgba(67, 48, 43, 0.06);
-}
-
-.shadow-chocolate-lg {
-  box-shadow: 0 4px 20px rgba(67, 48, 43, 0.1);
-}
-
-/* Custom range slider for batch calculator */
+/* Custom Range Slider */
 input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
+  width: 100%;
   height: 6px;
   border-radius: 3px;
-  background: #eaddd7;
+  background: linear-gradient(to right, #f43f5e, #f59e0b);
   outline: none;
 }
 
@@ -64,43 +74,72 @@ input[type="range"]::-webkit-slider-thumb {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: #f43f5e;
+  background: linear-gradient(135deg, #f43f5e, #f59e0b);
   cursor: pointer;
   border: 3px solid white;
-  box-shadow: 0 2px 6px rgba(244, 63, 94, 0.4);
+  box-shadow: 0 4px 12px rgba(244, 63, 94, 0.35);
 }
 
 input[type="range"]::-moz-range-thumb {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: #f43f5e;
+  background: linear-gradient(135deg, #f43f5e, #f59e0b);
   cursor: pointer;
   border: 3px solid white;
-  box-shadow: 0 2px 6px rgba(244, 63, 94, 0.4);
+  box-shadow: 0 4px 12px rgba(244, 63, 94, 0.35);
 }
 
-/* Modal overlay */
+input[type="range"]::-moz-range-track {
+  background: transparent;
+  border: none;
+}
+
+/* Modal Overlay */
 .modal-overlay {
-  background-color: rgba(60, 21, 24, 0.4);
-  backdrop-filter: blur(4px);
+  @apply bg-black/40 backdrop-blur-md;
 }
 
 /* Animations */
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.animate-slideUp {
-  animation: slideUp 0.2s ease-out;
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-soft {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 .animate-fadeIn {
-  animation: fadeIn 0.15s ease-out;
+  animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animate-slideUp {
+  animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
